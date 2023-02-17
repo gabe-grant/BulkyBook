@@ -1,11 +1,21 @@
 
 // This file is responsible for running the application
 
+using BulkyBookWeb.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the (dependency injection) container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
+
+// Adding the SQL Server NuGet packages allows us to connect the database 
+// the 'DefaultConnection' string arg correlates to the key inside ConnectionStrings in appsetting.json
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ));
+
+builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
 var app = builder.Build();
 
