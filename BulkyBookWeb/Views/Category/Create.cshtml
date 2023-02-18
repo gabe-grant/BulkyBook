@@ -11,16 +11,30 @@
             <hr />
         </div>
     </div>
+    <!-- The use of the TagHelpers here allows us to take the details from the form and apply it to the Category Model which represents how store data in the db -->
+    @*<div asp-validation-summary="All"></div>*@
     <div class="mb-2">
         <label asp-for="Name"></label>
         <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
     </div>
+    <!-- as well as inline Model validation -->
     <div class="mb-2">
         <label asp-for="DisplayOrder"></label>
         <input asp-for="DisplayOrder" class="form-control" />
+        <span asp-validation-for="DisplayOrder" class="text-danger"></span>
     </div>
     <button type="submit" class="btn btn-primary" style="width:150px">Create</button>
     <a asp-controller="Category" asp-action="Index" class="btn btn-secondary" style="width:150px">
         Back to List
     </a>
 </form>
+
+<!-- but because inside the partial view we have script files we need to make a section using the Razor syntax -->
+@section Scripts{
+    @{
+        <!-- importing a parital view that references one we have for client side validation -->
+        <!-- this is nice because all the validation will be done on the client side and prevent us from hitting the server everytime we check -->
+        <partial name="_ValidationScriptsPartial" />
+    }
+}

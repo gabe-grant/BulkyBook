@@ -30,5 +30,26 @@ namespace BulkyBookWeb.Controllers
         {
             return View();
         }
+
+        // POST
+        // the inputted form details in the Create View are added to the database connection in the Create action because of its a POST method
+        // Redirecting to the Index Method Action allows us return to the Index view after successful creation of a databse entry
+        // you could also redirect to a different method in a different controller by passing it as a second argument
+        // server side validation with tag helpers is God mode
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(Category obj)
+        {
+            if (obj.Name == obj.DisplayOrder.ToString())
+            {
+                ModelState.AddModelError("name", "The DisplayOrder cannot match the name exactly");
+            }
+            if (ModelState.IsValid) { 
+                _db.Categories.Add(obj);
+                _db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(obj);
+        }
     }
 }
