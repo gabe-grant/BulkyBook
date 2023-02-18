@@ -1,0 +1,37 @@
+﻿
+@model Category
+
+<!-- so since the GET is from Edit it will POST that to the same action method, which is Edit -->
+<!-- so explicitly we are telling that this form will submit to the Edit action method of the Category Controller -->
+<form method="post" asp-action="Edit">
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-secondary">Edit Category</h2>
+            <hr />
+        </div>
+    </div>
+    @*<div asp-validation-summary="All"></div>*@
+    <div class="mb-2">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-2">
+        <label asp-for="DisplayOrder"></label>
+        <input asp-for="DisplayOrder" class="form-control" />
+        <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+    </div>
+    <!-- which action method does it submit to? -->
+    <!-- by default the action will submit to the same name as the GET, in the controller and POST to the same name -->
+    <button type="submit" class="btn btn-primary" style="width:150px">Update</button>
+    <a asp-controller="Category" asp-action="Index" class="btn btn-secondary" style="width:150px">
+        Back to List
+    </a>
+</form>
+
+<!-- Razor syntax explained in Index View -->
+@section Scripts{
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+}

@@ -51,5 +51,79 @@ namespace BulkyBookWeb.Controllers
             }
             return View(obj);
         }
+
+        // GET
+        public IActionResult Edit(int? id)
+        {
+            if(id==null || id ==0)
+            {
+                return NotFound();
+            }
+            var categoryFromDb = _db.Categories.Find(id);
+            //var categoryFromDbFirst = _db.Categories.FirstOrDefault(c => c.Id == id);
+            //var categoryFromDbSingle = _db.Categories.SingleOrDefault(c => c.Id == id);
+
+            if (categoryFromDb==null)
+            {
+                return NotFound();
+            }
+
+            return View(categoryFromDb);
+        }
+
+        // POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(Category obj)
+        {
+            if (obj.Name == obj.DisplayOrder.ToString())
+            {
+                ModelState.AddModelError("name", "The DisplayOrder cannot match the name exactly");
+            }
+            if (ModelState.IsValid)
+            {
+                _db.Categories.Update(obj);
+                _db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(obj);
+        }
+
+        // GET
+        public IActionResult Delete(int? id)
+        {
+            if (id == null || id == 0)
+            {
+                return NotFound();
+            }
+            var categoryFromDb = _db.Categories.Find(id);
+
+            if (categoryFromDb == null)
+            {
+                return NotFound();
+            }
+
+            return View(categoryFromDb);
+        }
+
+        // POST
+        // All you have to do for delete is delete the Categort based off of the Id in the db
+        // below, the controller knows that if a request comes in with for a Delete action method HttpPost inside the category controller using the ActionName
+        // if you tried to make it the same name, it'll error out because the Delete action method will have the same signature
+        // you could just change the action method to something like 'DeletePOST' and have the same sig
+        [HttpPost,ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeletePOST(int? id)
+        {
+            var objId = _db.Categories.Find(id);
+            if (objId == null)
+            {
+                return NotFound();
+            }
+
+            _db.Categories.Remove(objId);   
+            _db.SaveChanges();
+            return RedirectToAction("Index");
+        }
     }
 }
