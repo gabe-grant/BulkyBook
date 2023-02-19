@@ -1,0 +1,20 @@
+﻿
+<!-- the TempData["success"] varible checks if its null and then ivokes the variable and displays the result into the h2 -->
+<!-- using jquery as the js distro we also call the toastr cdn allows us to use the toastr syntax right inside a script tag -->
+<!-- all using the activate sign to allow the variable activiation within our code -->
+@if (TempData["success"] != null)
+{
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script type="text/javascript">
+        toastr.success('@TempData["success"]');    
+    </script>
+}
+@if (TempData["error"] != null)
+{
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script type="text/javascript">
+        toastr.error('@TempData["error"]');
+    </script>
+}

@@ -47,6 +47,7 @@ namespace BulkyBookWeb.Controllers
             if (ModelState.IsValid) { 
                 _db.Categories.Add(obj);
                 _db.SaveChanges();
+                TempData["success"] = "Category created successfully";
                 return RedirectToAction("Index");
             }
             return View(obj);
@@ -84,6 +85,8 @@ namespace BulkyBookWeb.Controllers
             {
                 _db.Categories.Update(obj);
                 _db.SaveChanges();
+                // we are storing some string the message inside the Key, 'success' but it must be extracted from here and it will go away after refresh
+                TempData["success"] = "Category updated successfully";
                 return RedirectToAction("Index");
             }
             return View(obj);
@@ -123,6 +126,7 @@ namespace BulkyBookWeb.Controllers
 
             _db.Categories.Remove(objId);   
             _db.SaveChanges();
+            TempData["success"] = "Category deleted successfully";
             return RedirectToAction("Index");
         }
     }
