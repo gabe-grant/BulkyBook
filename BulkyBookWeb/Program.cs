@@ -1,7 +1,7 @@
 
 // This file is responsible for running the application
 
-using BulkyBookWeb.Data;
+using BulkyBook.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
