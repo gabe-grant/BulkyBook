@@ -29,11 +29,16 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-light" asp-area="Customer" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <!-- This is an example of a Tag Helper. The asp-controller and asp-action coordinate with their respective controller/action method for routing us to the page -->
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Category" asp-action="Index">Category</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-light" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Content Management</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item text-light" asp-area="Admin" asp-controller="Category" asp-action="Index">Category</a>
+                                <a class="dropdown-item text-light" asp-area="Admin" asp-controller="CoverType" asp-action="Index">CoverType</a>
+                                <div class="dropdown-divider"></div>
+                            </div>
                         </li>
                     </ul>
                 </div>

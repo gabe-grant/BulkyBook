@@ -4,7 +4,7 @@ using BulkyBook.DataAccess.Repository.IRepository;
 using BulkyBook.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BulkyBookWeb.Controllers
+namespace BulkyBookWeb.Areas.Admin.Controllers
 {
     public class CategoryController : Controller
     {
@@ -19,7 +19,7 @@ namespace BulkyBookWeb.Controllers
             IEnumerable<Category> objCategoryList = _unitOfWork.Category.GetAll();
             return View(objCategoryList);
         }
-        
+
         // GET
         public IActionResult Create()
         {
@@ -35,7 +35,8 @@ namespace BulkyBookWeb.Controllers
             {
                 ModelState.AddModelError("name", "The DisplayOrder cannot match the name exactly");
             }
-            if (ModelState.IsValid) {
+            if (ModelState.IsValid)
+            {
                 _unitOfWork.Category.Add(obj);
                 // a global save method so when we add more models we can just save it once, drilling down into the specific context
                 _unitOfWork.Save();
@@ -48,7 +49,7 @@ namespace BulkyBookWeb.Controllers
         // GET
         public IActionResult Edit(int? id)
         {
-            if(id==null || id ==0)
+            if (id == null || id == 0)
             {
                 return NotFound();
             }
@@ -101,7 +102,7 @@ namespace BulkyBookWeb.Controllers
         }
 
         // POST
-        [HttpPost,ActionName("Delete")]
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeletePOST(int? id)
         {
@@ -111,7 +112,7 @@ namespace BulkyBookWeb.Controllers
                 return NotFound();
             }
 
-            _unitOfWork.Category.Remove(obj);   
+            _unitOfWork.Category.Remove(obj);
             _unitOfWork.Save();
             TempData["success"] = "Category deleted successfully";
             return RedirectToAction("Index");
