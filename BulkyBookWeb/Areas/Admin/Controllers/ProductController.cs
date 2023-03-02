@@ -12,9 +12,11 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ProductController(IUnitOfWork unitOfWork)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
         {
             _unitOfWork = unitOfWork;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public IActionResult Index()
@@ -65,13 +67,30 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
         // POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Upsert(CoverType obj)
+        public IActionResult Upsert(ProductVM obj, IFormFile? file)
         {
             if (ModelState.IsValid)
             {
-                _unitOfWork.CoverType.Update(obj);
+                string wwwRothPath = _webHostEnvironment.WebRootPath;
+                // if it NOT null that means a file was uploaded
+                if (file != null)
+                {
+                    // a new GUID is a generated new file name, incase someone uploads a two file of the same name
+                    string fileName = Guid.NewGuid().ToString();
+                    var uploads = Path.Combine(wwwRothPath, @"images\products");
+                    // renaming the file but keeping the same extension
+                    var extension = Path.GetExtension(file.FileName);
+                    // now we copy the file that was uploaded inside the images folder
+                    using (var fileStreams = new FileStream(Path.Combine(uploads, fileName + extension), FileMode.Create))
+                    { 
+                        file.CopyTo(fileStreams);
+                    }
+                    // save it all in the database
+                    obj.Product.ImageUrl = @"\images\products" + fileName + extension;
+                }
+                _unitOfWork.Product.Add(obj.Product);
                 _unitOfWork.Save();
-                TempData["success"] = "CoverType updated successfully";
+                TempData["success"] = "Product created successfully";
                 return RedirectToAction("Index");
             }
             return View(obj);
