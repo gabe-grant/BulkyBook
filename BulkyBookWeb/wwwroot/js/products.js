@@ -12,7 +12,7 @@ $(document).ready(function () {
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": {
-            "url":"/Admin/Product/GetAll"
+            "url": "/Admin/Product/GetAll"
         },
         "columns": [
             { "data": "title", "width": "15%" },
@@ -20,6 +20,21 @@ function loadDataTable() {
             { "data": "price", "width": "15%" },
             { "data": "author", "width": "15%" },
             { "data": "category.name", "width": "15%" },
+            {
+                "data": "id",
+                // data is nothing but the product id the user selects and we pass it with string interpolation
+                "render": function (data) {
+                    return `
+                        <div class="w-75 btn-group" role="group">
+                            <a href="/Admin/Product/Upsert?id=${data}" title="Edit" 
+                            class="btn btn-primary mx-2"> <i class="bi bi-pencil-square"></i> </a>
+                            <a title="Delete"
+                            class="btn btn-danger mx-2"> <i class="bi bi-x-lg"></i> </a>
+                        </div>
+                    `
+                }, 
+                "width": "15%"
+            },
         ]
     });
 }
