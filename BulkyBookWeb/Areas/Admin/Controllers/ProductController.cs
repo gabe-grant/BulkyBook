@@ -6,6 +6,7 @@ using BulkyBook.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 
 namespace BulkyBookWeb.Areas.Admin.Controllers
 {
@@ -21,8 +22,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
 
         public IActionResult Index()
         {
-            IEnumerable<CoverType> objCoverTypeList = _unitOfWork.CoverType.GetAll();
-            return View(objCoverTypeList);
+            return View();
         }
 
         // GET
@@ -129,5 +129,17 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
             TempData["success"] = "CoverType deleted successfully";
             return RedirectToAction("Index");
         }
+
+        #region API CALLS
+        [HttpGet]
+        public IActionResult GetAll() 
+        { 
+            var productList =  _unitOfWork.Product.GetAll(includeProperties:"Category,CoverType");
+            return Json(new { data = productList });
+        }
+        // this API loads the data from the db and makes it available for the call in the Product Index View
+        // https://localhost:44322/Admin/Product/getall
+        #endregion
+
     }
 }

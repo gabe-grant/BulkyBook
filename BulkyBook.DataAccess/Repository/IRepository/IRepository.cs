@@ -12,8 +12,9 @@ namespace BulkyBook.DataAccess.Repository.IRepository
     public interface IRepository<T> where T : class
     {
         // Returning an IEnumerable and T can be any class and this is return a list
-        T GetFirstOrDefault(Expression<Func<T,bool>> filter);
-        IEnumerable<T> GetAll();
+        T GetFirstOrDefault(Expression<Func<T,bool>> filter, string? includeProperties = null);
+        // above and below we are including null properties from the models in the database and including them to manipulate in the repository
+        IEnumerable<T> GetAll(string? includeProperties = null);
         void Add(T entity);
         void Remove(T entity);
         void RemoveRange(IEnumerable<T> entity);
