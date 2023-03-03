@@ -1,0 +1,12 @@
+Repository and Unit of Work Patterns
+
+The repository pattern reduces the duplicate query logic. 
+
+When using DbSet & DbContext directly in your appication, it becomes directly connected to Entity Framework. 
+And when you want to update your ORM, you will need to modify your applicationcode directly.
+However if all of this is behind a Repository and your application code relies upon a Repository to return the right data, it will be independent of ORM.
+
+But if you are creating a basic application or where requirements are changing frequently, this pattern may be not useful. EFC could be your best choice. 
+
+------------------------------------------------------------
+
