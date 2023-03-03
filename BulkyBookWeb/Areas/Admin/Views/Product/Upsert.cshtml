@@ -71,7 +71,7 @@
                     <label asp-for="Product.CoverTypeId"></label>
                     <!-- ViewData is derived from ViewDataDictionary which must be type casted into the IEnumerable<SelectListItem> -->
                     <select asp-for="Product.CoverTypeId" asp-items="@Model.CoverTypeList" class="form-select">
-                        <option disabled selected>--Select CoverType--</option>
+                        <option disabled selected>--Select Cover Type--</option>
                     </select>
                     <span asp-validation-for="Product.CoverTypeId" class="text-danger"></span>
                 </div>
@@ -82,10 +82,10 @@
                     }
                     else
                     {
-                // this button fires of the JS stored in the Scripts section of this view using Sweetalerts in the _Layout file
+                        // this button fires of the JS stored in the Scripts section of this view using Sweetalerts in the _Layout file
                         <button type="submit" onclick="return ValidateInput()" class="btn btn-primary" style="width:150px">Create</button>
                     }
-                    <a asp-controller="CoverType" asp-action="Index" class="btn btn-secondary" style="width:150px">
+                    <a asp-controller="Product" asp-action="Index" class="btn btn-secondary" style="width:150px">
                         Back to List
                     </a>
                 </div>

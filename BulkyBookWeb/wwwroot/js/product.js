@@ -28,7 +28,7 @@ function loadDataTable() {
                         <div class="w-75 btn-group" role="group">
                             <a href="/Admin/Product/Upsert?id=${data}" title="Edit" 
                             class="btn btn-primary mx-2"> <i class="bi bi-pencil-square"></i> </a>
-                            <a title="Delete"
+                            <a onClick=Delete('/Admin/Product/Delete/${data}') title="Delete"
                             class="btn btn-danger mx-2"> <i class="bi bi-x-lg"></i> </a>
                         </div>
                     `
@@ -37,4 +37,32 @@ function loadDataTable() {
             },
         ]
     });
+}
+
+// delete the url endpoint that is invoked inside the product controller
+function Delete(url) {
+    swal({
+        title: "Are you sure?",
+        text: "Once deleted, you will not be able to recover this image!",
+        icon: "warning",
+        buttons: true,
+        dangerMode: true,
+    })
+        .then((result) => {
+            if (result) {
+                $.ajax({
+                    url: url,
+                    type: 'DELETE',
+                    success: function (data) {
+                        if (data.success) {
+                            dataTable.ajax.reload();
+                            toastr.success(data.message);
+                        }
+                        else {
+                            toastr.error(data.message);
+                        }
+                    }
+                })
+            }
+        });
 }
