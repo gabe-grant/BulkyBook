@@ -3,6 +3,7 @@ using BulkyBook.DataAccess;
 using BulkyBook.DataAccess.Repository;
 using BulkyBook.DataAccess.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(
     builder.Configuration.GetConnectionString("DefaultConnection")
     ));
+
+// added with Identity EFC
+builder.Services.AddDefaultIdentity<IdentityUser>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 // adding the Unit of Work will take care of all the repositories we add in the future, this one injection is sufficient
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -31,6 +36,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+// added with Identity EFC
+app.UseAuthentication();;
 
 app.UseAuthorization();
 
