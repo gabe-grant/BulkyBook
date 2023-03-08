@@ -40,7 +40,8 @@ app.UseRouting();
 app.UseAuthentication();;
 
 app.UseAuthorization();
-
+// you have to add this after Identity framework
+app.MapRazorPages();
 app.MapControllerRoute(
     name: "default",
     pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
