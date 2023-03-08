@@ -10,6 +10,7 @@ using System.Diagnostics.Contracts;
 
 namespace BulkyBookWeb.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -116,22 +117,22 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
         }
 
 
-        // POST
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeletePOST(int? id)
-        {
-            var obj = _unitOfWork.CoverType.GetFirstOrDefault(c => c.Id == id);
-            if (obj == null)
-            {
-                return NotFound();
-            }
+        //// POST
+        //[HttpPost, ActionName("Delete")]
+        //[ValidateAntiForgeryToken]
+        //public IActionResult DeletePOST(int? id)
+        //{
+        //    var obj = _unitOfWork.CoverType.GetFirstOrDefault(c => c.Id == id);
+        //    if (obj == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            _unitOfWork.CoverType.Remove(obj);
-            _unitOfWork.Save();
-            TempData["success"] = "CoverType deleted successfully";
-            return RedirectToAction("Index");
-        }
+        //    _unitOfWork.CoverType.Remove(obj);
+        //    _unitOfWork.Save();
+        //    TempData["success"] = "CoverType deleted successfully";
+        //    return RedirectToAction("Index");
+        //}
 
         #region API CALLS
 
