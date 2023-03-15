@@ -40,9 +40,12 @@
                                 <a class="dropdown-item text-light" asp-area="Admin" asp-controller="CoverType" asp-action="Index">CoverType</a>
                                 <a class="dropdown-item text-light" asp-area="Admin" asp-controller="Product" asp-action="Index">Product</a>
                                 <div class="dropdown-divider"></div>
+                                <a class="dropdown-item text-light" asp-area="Admin" asp-controller="Company" asp-action="Index">Company</a>
                             </div>
                         </li>
                     </ul>
+                    <!-- once we added the Identity framework we need display it here -->
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
@@ -66,6 +69,8 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="//cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.tiny.cloud/1/j4tnt8qp6ymue2y24choz4qd5fqw2kdwnwgzlgtogu8x1bn6/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
