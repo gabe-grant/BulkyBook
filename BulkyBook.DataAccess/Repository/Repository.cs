@@ -29,10 +29,15 @@ namespace BulkyBook.DataAccess.Repository
         }
 
         // Including Model Properties - "Category, CoverType"
-        public IEnumerable<T> GetAll(string? includeProperties = null)
+        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter=null, string? includeProperties = null)
         {
             IQueryable<T> query = dbSet;
-            if(includeProperties != null)
+            if(filter != null)
+            {
+                query = query.Where(filter);
+            }
+            
+            if (includeProperties != null)
             {
                 // so now each propery that is not null we will add a comma and remove the empty ones
                 foreach(var property in includeProperties.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries))
