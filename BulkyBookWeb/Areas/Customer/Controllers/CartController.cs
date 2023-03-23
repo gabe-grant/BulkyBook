@@ -4,8 +4,11 @@ using BulkyBook.Models.ViewModels;
 using BulkyBook.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.Win32.SafeHandles;
+using Stripe.Checkout;
 using System.Security.Claims;
+using static System.Net.WebRequestMethods;
 
 namespace BulkyBookWeb.Areas.Customer.Controllers
 {
@@ -138,10 +141,71 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
                 _unitOfWork.Save();
 			}
 
-            _unitOfWork.ShoppingCart.RemoveRange(ShoppingCartVM.ListCart); // removes the collection from the shopping cart
+            // Stripe settings
+            var domain = "https://localhost:44322/"; // you can get this URL from the IWebHostEnvironment, you would have to add that using DI
+			var options = new SessionCreateOptions // when working with Stripe we will be creating a session and adding details on the options var
+			{
+				// LineItems basically represents all the items in your shopping cart, rather than adding a static list, we can loop through our shopping cart using a foreach
+				LineItems = new List<SessionLineItemOptions>(), 
+				Mode = "payment",
+				// Customer area, Cart controller, OrderConfirmation action method, passing the OrderHeaderId. A redirection url after successful payment
+				SuccessUrl = domain+$"customer/cart/OrderConfirmation?id={ShoppingCartVM.OrderHeader.Id}",
+                // if canceled the custoemr is redirected to the path below
+				CancelUrl = domain+"cusotmer/cart/index",
+			};
+
+            foreach(var item in ShoppingCartVM.ListCart) // creating one variable for each item in the shopping cart 
+            {
+                var sessionLineItem = new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions // confifure all the price data
+                    {
+                        UnitAmount = (long)(item.Price * 100), // $20.00 -> 2000 (multiply by 100, because the unit amount is done in Cents not dollars)
+                        Currency = "usd",
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = item.Product.Title // we can add more items here like, Description = item.Product.Description,
+                        },
+                    },
+                    Quantity = item.Count, // based on this quantity and the individual price it will do the calculation and display the grand total
+                };
+                options.LineItems.Add(sessionLineItem);
+			}
+
+			var service = new SessionService();
+			Session session = service.Create(options);
+            // updating the SessionId and PaymentIntentId properties of the OrderHeader class
+            _unitOfWork.OrderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+			_unitOfWork.Save();
+
+			Response.Headers.Add("Location", session.Url);
+			return new StatusCodeResult(303);
+
+
+			//_unitOfWork.ShoppingCart.RemoveRange(ShoppingCartVM.ListCart); // removes the collection from the shopping cart
+            //_unitOfWork.Save();
+			//return RedirectToAction("Index","Home"); // redirecting to the Index action of the Home Controller
+		}
+
+
+        public IActionResult OrderConfirmation(int id)
+        {
+            // based on the Id passed in we will have to retrieve the OrderHeader from the Db, and the reason for that is because we have to check the stripe status
+            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(x => x.Id == id);
+			var service = new SessionService();
+			Session session = service.Get(orderHeader.SessionId); // getting the order, not creating it
+            // because you could potentially navigate to the url manually, we configure it so we know that a payment is ACTUALLY done
+            if(session.PaymentStatus.ToLower() == "paid")
+            {
+                _unitOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
+                _unitOfWork.Save();
+            }
+            // before remove the shopping cart data we will need to retrieve it again
+            List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
+            _unitOfWork.ShoppingCart.RemoveRange(shoppingCarts); // removes the collection from the shopping cart
             _unitOfWork.Save();
             
-			return RedirectToAction("Index","Home"); // redirecting to the Index action of the Home Controller
+            return View(id); // returning to the View of the id passed into OrderConfirmation
 		}
 
 
