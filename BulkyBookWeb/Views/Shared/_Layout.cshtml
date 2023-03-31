@@ -1,8 +1,5 @@
-﻿
-<!-- This file is the default master page of our application -->
-
+﻿<!-- This file is the default master page of our application -->
 <!-- The 'Shared' folder is the location of partial views that ALL views can utilize -->
-
 <!-- This is the place to add CSS and JS globally -->
 
 <!DOCTYPE html>
@@ -42,6 +39,11 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item text-light" asp-area="Admin" asp-controller="Company" asp-action="Index">Company</a>
                             </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="Admin" asp-controller="Order" asp-action="Index">
+                                Manage Order
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-area="Customer" asp-controller="Cart" asp-action="Index">
