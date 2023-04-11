@@ -10,6 +10,6 @@ namespace BulkyBook.Models.ViewModels
 	{
         public OrderHeader OrderHeader { get; set; }
         // an order can have multiple order details
-        public IEnumerable<OrderDetail> OrderDetails{ get; set; }
+        public IEnumerable<OrderDetail> OrderDetails { get; set; }
     }
 }
