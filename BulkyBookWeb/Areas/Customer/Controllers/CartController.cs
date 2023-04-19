@@ -220,7 +220,9 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
 																	  // because you could potentially navigate to the url manually, we configure it so we know that a payment is ACTUALLY done
 				if (session.PaymentStatus.ToLower() == "paid")
 				{
-					_unitOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
+                    // updating the SessionId and PaymentIntentId properties of the OrderHeader class
+                    _unitOfWork.OrderHeader.UpdateStripePaymentId(id, orderHeader.SessionId, session.PaymentIntentId);
+                    _unitOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
 					_unitOfWork.Save();
 				}
 			}
