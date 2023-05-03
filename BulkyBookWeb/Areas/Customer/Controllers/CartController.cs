@@ -106,8 +106,7 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
                     includeProperties: "Product");
 
             // when the order is placed we do have update some details in OrderHeader
-            ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
-            ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+            
             ShoppingCartVM.OrderHeader.OrderDate = DateTime.Now;
             ShoppingCartVM.OrderHeader.ApplicationUserId = claim.Value;
 
@@ -122,8 +121,21 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
 				ShoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
 			}
 
-            // Entity is rad, once an OrderHeader is saved to the Db it will automatically populate it inside of the OrderHeader object here
-            _unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
+			ApplicationUser applicationUser = _unitOfWork.ApplicationUser.GetFirstOrDefault(u => u.Id == claim.Value);
+
+			if (applicationUser.CompanyId.GetValueOrDefault() == 0)
+			{
+				ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
+				ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+			}
+            else
+            {
+				ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment;
+				ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
+			}
+
+			// Entity is rad, once an OrderHeader is saved to the Db it will automatically populate it inside of the OrderHeader object here
+			_unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
             _unitOfWork.Save();
 
 			// create the order details for all the items in the shopping cart
@@ -141,50 +153,59 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
                 _unitOfWork.Save();
 			}
 
-            // Stripe settings
-            var domain = "https://localhost:44322/"; // you can get this URL from the IWebHostEnvironment, you would have to add that using DI
-			var options = new SessionCreateOptions // when working with Stripe we will be creating a session and adding details on the options var
-			{
-				// LineItems basically represents all the items in your shopping cart, rather than adding a static list, we can loop through our shopping cart using a foreach
-				LineItems = new List<SessionLineItemOptions>(), 
-				Mode = "payment",
-				// Customer area, Cart controller, OrderConfirmation action method, passing the OrderHeaderId. A redirection url after successful payment
-				SuccessUrl = domain+$"customer/cart/OrderConfirmation?id={ShoppingCartVM.OrderHeader.Id}",
-                // if canceled the custoemr is redirected to the path below
-				CancelUrl = domain+"cusotmer/cart/index",
-			};
 
-            foreach(var item in ShoppingCartVM.ListCart) // creating one variable for each item in the shopping cart 
+
+            if (applicationUser.CompanyId.GetValueOrDefault() == 0)
             {
-                var sessionLineItem = new SessionLineItemOptions
+
+
+                // Stripe settings
+                var domain = "https://localhost:44322/"; // you can get this URL from the IWebHostEnvironment, you would have to add that using DI
+                var options = new SessionCreateOptions // when working with Stripe we will be creating a session and adding details on the options var
                 {
-                    PriceData = new SessionLineItemPriceDataOptions // confifure all the price data
-                    {
-                        UnitAmount = (long)(item.Price * 100), // $20.00 -> 2000 (multiply by 100, because the unit amount is done in Cents not dollars)
-                        Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = item.Product.Title // we can add more items here like, Description = item.Product.Description,
-                        },
-                    },
-                    Quantity = item.Count, // based on this quantity and the individual price it will do the calculation and display the grand total
+                    // LineItems basically represents all the items in your shopping cart, rather than adding a static list, we can loop through our shopping cart using a foreach
+                    LineItems = new List<SessionLineItemOptions>(),
+                    Mode = "payment",
+                    // Customer area, Cart controller, OrderConfirmation action method, passing the OrderHeaderId. A redirection url after successful payment
+                    SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={ShoppingCartVM.OrderHeader.Id}",
+                    // if canceled the custoemr is redirected to the path below
+                    CancelUrl = domain + "cusotmer/cart/index",
                 };
-                options.LineItems.Add(sessionLineItem);
-			}
 
-			var service = new SessionService();
-			Session session = service.Create(options);
-            // updating the SessionId and PaymentIntentId properties of the OrderHeader class
-            _unitOfWork.OrderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
-			_unitOfWork.Save();
+                foreach (var item in ShoppingCartVM.ListCart) // creating one variable for each item in the shopping cart 
+                {
+                    var sessionLineItem = new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions // confifure all the price data
+                        {
+                            UnitAmount = (long)(item.Price * 100), // $20.00 -> 2000 (multiply by 100, because the unit amount is done in Cents not dollars)
+                            Currency = "usd",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = item.Product.Title // we can add more items here like, Description = item.Product.Description,
+                            },
+                        },
+                        Quantity = item.Count, // based on this quantity and the individual price it will do the calculation and display the grand total
+                    };
+                    options.LineItems.Add(sessionLineItem);
+                }
 
-			Response.Headers.Add("Location", session.Url);
-			return new StatusCodeResult(303);
+                var service = new SessionService();
+                Session session = service.Create(options);
+                // updating the SessionId and PaymentIntentId properties of the OrderHeader class
+                _unitOfWork.OrderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+                _unitOfWork.Save();
 
+                Response.Headers.Add("Location", session.Url);
+                return new StatusCodeResult(303);
 
-			//_unitOfWork.ShoppingCart.RemoveRange(ShoppingCartVM.ListCart); // removes the collection from the shopping cart
-            //_unitOfWork.Save();
-			//return RedirectToAction("Index","Home"); // redirecting to the Index action of the Home Controller
+            }
+            
+            else
+            {
+                return RedirectToAction("OrderConfirmation", "Cart", new { id = ShoppingCartVM.OrderHeader.Id });
+            }
+
 		}
 
 
@@ -192,14 +213,20 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
         {
             // based on the Id passed in we will have to retrieve the OrderHeader from the Db, and the reason for that is because we have to check the stripe status
             OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(x => x.Id == id);
-			var service = new SessionService();
-			Session session = service.Get(orderHeader.SessionId); // getting the order, not creating it
-            // because you could potentially navigate to the url manually, we configure it so we know that a payment is ACTUALLY done
-            if(session.PaymentStatus.ToLower() == "paid")
+            if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
             {
-                _unitOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
-                _unitOfWork.Save();
-            }
+				var service = new SessionService();
+				Session session = service.Get(orderHeader.SessionId); // getting the order, not creating it
+																	  // because you could potentially navigate to the url manually, we configure it so we know that a payment is ACTUALLY done
+				if (session.PaymentStatus.ToLower() == "paid")
+				{
+                    // updating the SessionId and PaymentIntentId properties of the OrderHeader class
+                    _unitOfWork.OrderHeader.UpdateStripePaymentId(id, orderHeader.SessionId, session.PaymentIntentId);
+                    _unitOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
+					_unitOfWork.Save();
+				}
+			}
+			
             // before remove the shopping cart data we will need to retrieve it again
             List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
             _unitOfWork.ShoppingCart.RemoveRange(shoppingCarts); // removes the collection from the shopping cart
