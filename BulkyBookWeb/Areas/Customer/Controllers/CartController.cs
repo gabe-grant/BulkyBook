@@ -3,6 +3,7 @@ using BulkyBook.Models;
 using BulkyBook.Models.ViewModels;
 using BulkyBook.Utility;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Win32.SafeHandles;
@@ -17,14 +18,16 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
     public class CartController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IEmailSender _emailSender;
 
         [BindProperty] // this automatically binds the property when we post the form, so that we have one property to use it throughout the controller
         public ShoppingCartVM ShoppingCartVM { get; set; }
 
         public int OrderTotal { get; set; }
-        public CartController(IUnitOfWork unitOfWork)
+        public CartController(IUnitOfWork unitOfWork, IEmailSender emailSender)
         {
             _unitOfWork = unitOfWork;
+            _emailSender = emailSender;
         }
 
         public IActionResult Index()
@@ -212,7 +215,7 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
         public IActionResult OrderConfirmation(int id)
         {
             // based on the Id passed in we will have to retrieve the OrderHeader from the Db, and the reason for that is because we have to check the stripe status
-            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(x => x.Id == id);
+            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(x => x.Id == id, includeProperties:"ApplicationUser");
             if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
             {
 				var service = new SessionService();
@@ -226,7 +229,8 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
 					_unitOfWork.Save();
 				}
 			}
-			
+
+            _emailSender.SendEmailAsync(orderHeader.ApplicationUser.Email, "New Order - Bulky Book", "<p>New Order Created</p>");
             // before remove the shopping cart data we will need to retrieve it again
             List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
             _unitOfWork.ShoppingCart.RemoveRange(shoppingCarts); // removes the collection from the shopping cart
