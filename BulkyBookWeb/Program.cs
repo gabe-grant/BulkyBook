@@ -36,6 +36,13 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = $"/Identity/Account/Logout";
     options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
 });
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(100);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -58,6 +65,7 @@ StripeConfiguration.ApiKey = builder.Configuration.GetSection("StripeSettings:Se
 app.UseAuthentication();;
 
 app.UseAuthorization();
+app.UseSession();
 // you have to add this after Identity framework
 app.MapRazorPages();
 app.MapControllerRoute(

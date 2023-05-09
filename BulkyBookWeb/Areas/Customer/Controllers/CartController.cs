@@ -4,6 +4,7 @@ using BulkyBook.Models.ViewModels;
 using BulkyBook.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Win32.SafeHandles;
 using Stripe.Checkout;
@@ -202,6 +203,9 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
             }
             // before remove the shopping cart data we will need to retrieve it again
             List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
+
+            HttpContext.Session.Clear();
+
             _unitOfWork.ShoppingCart.RemoveRange(shoppingCarts); // removes the collection from the shopping cart
             _unitOfWork.Save();
             
@@ -223,7 +227,9 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
             if (cart.Count <= 1)
             {
 				_unitOfWork.ShoppingCart.Remove(cart);
-			}
+                var count = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == cart.ApplicationUserId).ToList().Count - 1;
+                HttpContext.Session.SetInt32(SD.SessionCart, count);
+            }
             else
             {
 				_unitOfWork.ShoppingCart.DecrementCount(cart, 1);
@@ -237,7 +243,11 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
 			var cart = _unitOfWork.ShoppingCart.GetFirstOrDefault(u => u.Id == cartId);
 			_unitOfWork.ShoppingCart.Remove(cart);
 			_unitOfWork.Save();
-			return RedirectToAction(nameof(Index));
+
+            var count = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == cart.ApplicationUserId).ToList().Count;
+            HttpContext.Session.SetInt32(SD.SessionCart, count);
+
+            return RedirectToAction(nameof(Index));
 		}
 
 

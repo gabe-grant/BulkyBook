@@ -27,5 +27,7 @@ namespace BulkyBook.Utility
 		public const string PaymentStatusApproved = "Approved"; // then approved
 		public const string PaymentStatusDelayedPayment = "ApprovedForDelayedPayment"; // unless it's a company, where they have 30 days to make payment after ship
 		public const string PaymentStatusRejected = "Rejected"; // if rejected
-	}
+
+        public const string SessionCart = "SessionShoppingCart";
+    }
 }
